@@ -4,6 +4,8 @@ import numpy as np
 from ExplanationEvaluation.datasets.dataset_loaders import load_dataset
 from ExplanationEvaluation.models.model_selector import model_selector
 from sklearn.preprocessing import MultiLabelBinarizer
+import pandas as pd
+from tqdm import tqdm
 
 
 def evaluate(out, labels, _dataset):
@@ -46,7 +48,7 @@ def store_checkpoint(paper, dataset, model, train_acc, val_acc, test_acc, epoch=
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
 
-    print("epoch : ", epoch, "  : saved at : ", save_dir)
+    # print("epoch : ", epoch, "  : saved at : ", save_dir)
     if epoch == -1:
         torch.save(checkpoint, os.path.join(save_dir, f"best_model"))
     else:
@@ -63,7 +65,7 @@ def load_best_model(best_epoch, paper, dataset, model, eval_enabled):
     :param eval_enabled: wheater to activate evaluation mode on the model or not
     :return: model with pramaters taken from the checkpoint
     """
-    print(best_epoch)
+    # print(best_epoch)
     if best_epoch == -1:
         checkpoint = torch.load(
             f"/Users/shubhammodi/Documents/CS 579/Project 2/RE-ParameterizedExplainerForGraphNeuralNetworks/ExplanationEvaluation/models/pretrained/{paper}/{dataset}/best_model")
@@ -103,7 +105,8 @@ def train_node(_dataset, _paper, args):
     best_val_acc = 0.0
     best_epoch = 0
 
-    for epoch in range(0, args.epochs):
+    train_results = []
+    for epoch in tqdm(range(0, args.epochs)):
         model.train()
         optimizer.zero_grad()
         out = model(x, edge_index)
@@ -140,11 +143,12 @@ def train_node(_dataset, _paper, args):
             train_acc = evaluate(out[train_mask], labels[train_mask], _dataset)
             test_acc = evaluate(out[test_mask], labels[test_mask], _dataset)
             val_acc = evaluate(out[val_mask], labels[val_mask], _dataset)
-        print(
-            f"Epoch: {epoch}, train_acc: {train_acc:.4f}, val_acc: {val_acc:.4f}, train_loss: {loss:.4f}")
+        # print(
+            # f"Epoch: {epoch}, train_acc: {train_acc:.4f}, val_acc: {val_acc:.4f}, train_loss: {loss:.4f}")
+        train_results.append((train_acc, val_acc, loss))
 
         if val_acc > best_val_acc:  # New best results
-            print("Val improved")
+            # print("Val improved")
             best_val_acc = val_acc
             best_epoch = epoch
             store_checkpoint(_paper, _dataset, model, train_acc,
@@ -172,4 +176,8 @@ def train_node(_dataset, _paper, args):
     print(
         f"final train_acc:{train_acc}, val_acc: {val_acc}, test_acc: {test_acc}")
 
+    df = pd.DataFrame(data=train_results,
+                      columns=["Train Accuracy", "Validation Accuracy", "Training Loss"])
+
     store_checkpoint(_paper, _dataset, model, train_acc, val_acc, test_acc)
+    return df
