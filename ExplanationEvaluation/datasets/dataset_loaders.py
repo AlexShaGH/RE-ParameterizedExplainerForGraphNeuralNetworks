@@ -1,6 +1,7 @@
 import numpy as np
 import torch
-from torch_geometric.datasets import Twitch
+from torch_geometric.datasets import Twitch, Planetoid
+from torch_geometric.utils import to_dense_adj
 
 
 # def load_FacebookPagePageDataset():
@@ -88,6 +89,8 @@ def load_dataset(_dataset, skip_preproccessing=False, shuffle=True):
     #     return load_WebKBDataset()
     if _dataset == "Twitch":
         return load_TwitchDataset()
+    elif _dataset == "cora":
+        return load_cora_dataset()        
     # if _dataset == "politifact":
     #     return load_politifact_dataset()
     else:
@@ -140,3 +143,25 @@ def load_TwitchDataset():
     test_mask = test.bool()
 
     return graph.edge_index, graph.x, graph.y.numpy(), train_mask, val_mask, test_mask
+
+def load_cora_dataset():
+    """Load a node dataset - cora
+
+    :returns: np.arrays
+    """
+
+    dataset = Planetoid(root='/tmp/Cora', name='Cora')
+    data = dataset[0]
+
+    adj = to_dense_adj(data.edge_index)[0].numpy()
+    features = data.x.numpy()
+    labels = np.eye(dataset.num_classes, dtype='uint8')[data.y.numpy()]
+    train_mask = data.train_mask.numpy()
+    test_mask = data.test_mask.numpy()
+    val_mask = data.val_mask.numpy()
+
+    print(labels)
+    print(data.y.numpy())
+
+    #return adj, features, labels, train_mask, val_mask, test_mask    
+    return data.edge_index, data.x, data.y.numpy(), train_mask, val_mask, test_mask

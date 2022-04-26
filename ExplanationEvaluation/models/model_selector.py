@@ -14,6 +14,8 @@ def string_to_model(dataset):
     """
     if dataset == "Twitch":
         return GNN_NodeGCN(128, 2)
+    elif dataset == "cora":
+        return GNN_NodeGCN(1433, 7)        
     else:
         raise NotImplementedError
 

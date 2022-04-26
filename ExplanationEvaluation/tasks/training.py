@@ -41,6 +41,7 @@ def store_checkpoint(paper, dataset, model, train_acc, val_acc, test_acc, epoch=
     :retunrs: None
     """
     save_dir = f"/Users/shubhammodi/Documents/CS 579/Project 2/RE-ParameterizedExplainerForGraphNeuralNetworks/ExplanationEvaluation/models/pretrained/{paper}/{dataset}"
+    #save_dir = f"C:\\Users\\Alex\\Documents\\IIT\\CS579 - Online Social Network Analysis\\Project-2\\from shubhum\\RE-ParameterizedExplainerForGraphNeuralNetworks\\ExplanationEvaluation\\models\\pretrained\\{paper}\\{dataset}"
     checkpoint = {'model_state_dict': model.state_dict(),
                   'train_acc': train_acc,
                   'val_acc': val_acc,
@@ -69,9 +70,11 @@ def load_best_model(best_epoch, paper, dataset, model, eval_enabled):
     if best_epoch == -1:
         checkpoint = torch.load(
             f"/Users/shubhammodi/Documents/CS 579/Project 2/RE-ParameterizedExplainerForGraphNeuralNetworks/ExplanationEvaluation/models/pretrained/{paper}/{dataset}/best_model")
+            #f"C:\\Users\\Alex\\Documents\\IIT\\CS579 - Online Social Network Analysis\\Project-2\\from shubhum\\RE-ParameterizedExplainerForGraphNeuralNetworks\\ExplanationEvaluation\\models\\pretrained\\{paper}\\{dataset}\\best_model")            
     else:
         checkpoint = torch.load(
             f"/Users/shubhammodi/Documents/CS 579/Project 2/RE-ParameterizedExplainerForGraphNeuralNetworks/ExplanationEvaluation/models/pretrained/{paper}/{dataset}/model_{best_epoch}")
+            #f"C:\\Users\\Alex\\Documents\\IIT\\CS579 - Online Social Network Analysis\\Project-2\\from shubhum\\RE-ParameterizedExplainerForGraphNeuralNetworks\\ExplanationEvaluation\\models\\pretrained\\{paper}\\{dataset}\\model_{best_epoch}")
     model.load_state_dict(checkpoint['model_state_dict'])
 
     if eval_enabled:
