@@ -37,7 +37,7 @@ To run the project, Follow the below steps
 
 1.  Open the integrated command line and run the command <i>"pip install -r requirements.txt"</i>. This install are the required packages in the system.
 2.  Open the <i><u>GNN Model Training.ipynb</u></i> Jupyter Notebook file and run the file as per the given instructions in the file. Choose an appropriate dataset while running the notebook {"Twitch", "Cora"}
-3.  Open the <i><u>{model you choose in first part} GNN Explanations.ipynb</u></i> jupyter notebook file and run the file as per the given instructions in the file.
+3.  Open the <i><u>GNN Explainer {specify Dataset}.ipynb</u></i> jupyter notebook file and run the file as per the given instructions in the file.
 4.  Visualize the graphs and explain the nodes you'd like to understand the prediction for and display them.
 
 <br>
