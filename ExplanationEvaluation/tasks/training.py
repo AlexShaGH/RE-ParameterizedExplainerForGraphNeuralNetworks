@@ -3,7 +3,6 @@ import torch
 import numpy as np
 from ExplanationEvaluation.datasets.dataset_loaders import load_dataset
 from ExplanationEvaluation.models.model_selector import model_selector
-from sklearn.preprocessing import MultiLabelBinarizer
 import pandas as pd
 from tqdm import tqdm
 
@@ -15,11 +14,6 @@ def evaluate(out, labels, _dataset):
     :param labels: ground truth of the data
     :returns: int accuracy
     """
-    if _dataset == "facebook":
-        mlb = MultiLabelBinarizer(classes=[1, 2, 3, 4])
-        mlb.fit(labels)
-        labels = mlb.inverse_transform(labels)
-        labels = torch.tensor(np.array(labels).squeeze())
     if _dataset == "Twitch":
         labels = labels.T[0]
     preds = out.argmax(dim=1)
@@ -40,8 +34,7 @@ def store_checkpoint(paper, dataset, model, train_acc, val_acc, test_acc, epoch=
     :param epoch: the current epoch of the training process
     :retunrs: None
     """
-    save_dir = f"/Users/shubhammodi/Documents/CS 579/Project 2/RE-ParameterizedExplainerForGraphNeuralNetworks/ExplanationEvaluation/models/pretrained/{paper}/{dataset}"
-    #save_dir = f"C:\\Users\\Alex\\Documents\\IIT\\CS579 - Online Social Network Analysis\\Project-2\\from shubhum\\RE-ParameterizedExplainerForGraphNeuralNetworks\\ExplanationEvaluation\\models\\pretrained\\{paper}\\{dataset}"
+    save_dir = f"./ExplanationEvaluation/models/pretrained/{paper}/{dataset}"
     checkpoint = {'model_state_dict': model.state_dict(),
                   'train_acc': train_acc,
                   'val_acc': val_acc,
@@ -69,12 +62,10 @@ def load_best_model(best_epoch, paper, dataset, model, eval_enabled):
     # print(best_epoch)
     if best_epoch == -1:
         checkpoint = torch.load(
-            f"/Users/shubhammodi/Documents/CS 579/Project 2/RE-ParameterizedExplainerForGraphNeuralNetworks/ExplanationEvaluation/models/pretrained/{paper}/{dataset}/best_model")
-            #f"C:\\Users\\Alex\\Documents\\IIT\\CS579 - Online Social Network Analysis\\Project-2\\from shubhum\\RE-ParameterizedExplainerForGraphNeuralNetworks\\ExplanationEvaluation\\models\\pretrained\\{paper}\\{dataset}\\best_model")            
+            f"./ExplanationEvaluation/models/pretrained/{paper}/{dataset}/best_model")
     else:
         checkpoint = torch.load(
-            f"/Users/shubhammodi/Documents/CS 579/Project 2/RE-ParameterizedExplainerForGraphNeuralNetworks/ExplanationEvaluation/models/pretrained/{paper}/{dataset}/model_{best_epoch}")
-            #f"C:\\Users\\Alex\\Documents\\IIT\\CS579 - Online Social Network Analysis\\Project-2\\from shubhum\\RE-ParameterizedExplainerForGraphNeuralNetworks\\ExplanationEvaluation\\models\\pretrained\\{paper}\\{dataset}\\model_{best_epoch}")
+            f"./ExplanationEvaluation/models/pretrained/{paper}/{dataset}/model_{best_epoch}")
     model.load_state_dict(checkpoint['model_state_dict'])
 
     if eval_enabled:
@@ -94,15 +85,10 @@ def train_node(_dataset, _paper, args):
         _dataset)
     model = model_selector(_paper, _dataset, False)
 
-    # x = torch.tensor(features)
     labels = torch.tensor(labels, dtype=torch.long)
     # Define graph
     print(model)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    # if _dataset == "Twitch":
-    #     criterion = torch.nn.BCEWithLogitsLoss()
-    # else:
-    #     criterion = torch.nn.CrossEntropyLoss()
     criterion = torch.nn.CrossEntropyLoss()
 
     best_val_acc = 0.0
@@ -113,16 +99,11 @@ def train_node(_dataset, _paper, args):
         model.train()
         optimizer.zero_grad()
         out = model(x, edge_index)
-        # out = model(Data(x=x, edge_index=edge_index, y=torch.tensor(labels)))
         if _dataset == "Twitch":
             preds = out[train_mask]
             targets = torch.unsqueeze(labels[train_mask], 1)
-            # print("preds : ", preds.shape)
-            # print("targets : ", targets.shape)
-            # loss = criterion(preds.float(), targets.float())
             loss = criterion(out[train_mask], labels[train_mask])
         else:
-            # return out, labels
             loss = criterion(out[train_mask], labels[train_mask])
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_max)
@@ -132,8 +113,6 @@ def train_node(_dataset, _paper, args):
             model.eval()
         with torch.no_grad():
             out = model(x, edge_index)
-            # out = model(Data(x=x, edge_index=edge_index,
-            # y = torch.tensor(labels)))
 
         # Evaluate train
         if _dataset == "Twitch":
@@ -146,8 +125,7 @@ def train_node(_dataset, _paper, args):
             train_acc = evaluate(out[train_mask], labels[train_mask], _dataset)
             test_acc = evaluate(out[test_mask], labels[test_mask], _dataset)
             val_acc = evaluate(out[val_mask], labels[val_mask], _dataset)
-        # print(
-            # f"Epoch: {epoch}, train_acc: {train_acc:.4f}, val_acc: {val_acc:.4f}, train_loss: {loss:.4f}")
+
         train_results.append((train_acc, val_acc, loss))
 
         if val_acc > best_val_acc:  # New best results
